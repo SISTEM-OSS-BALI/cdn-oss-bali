@@ -8,8 +8,6 @@ export async function GET() {
     info: {
       title: "OSS Bali Storage API",
       version: "1.0.0",
-      description:
-        "Pre-signed URL workflow untuk upload ke MinIO (S3-compatible) dan akses via CDN.\nSemua endpoint memerlukan API key.",
     },
     servers: [
       { url: "", description: "Same-origin (local/prod)" },
@@ -18,12 +16,11 @@ export async function GET() {
         description: "Production",
       },
     ],
-    // Terapkan security default ke semua path (bisa ditimpa per-operation)
     security: [{ ApiKeyAuth: [] }],
     paths: {
       "/api/storage/create-upload": {
         post: {
-          summary: "Buat pre-signed URL untuk upload (PUT) ke MinIO",
+          summary: "Buat pre-signed URL untuk upload (PUT)",
           operationId: "createUpload",
           tags: ["Storage"],
           security: [{ ApiKeyAuth: [] }], // eksplisit
