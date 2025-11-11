@@ -37,7 +37,7 @@ export default function Uploader() {
   const [log, setLog] = useState<string>("");
 
   async function createUpload(file: File): Promise<CreateUploadResp> {
-    const { hex } = await sha256(file); // aktifkan checksum; bisa dimatikan jika tak perlu
+    const { hex } = await sha256(file); 
     const res = await fetch("/api/storage/create-upload", {
       method: "POST",
       headers: {
@@ -47,6 +47,7 @@ export default function Uploader() {
       body: JSON.stringify({
         mime: file.type || "application/octet-stream",
         ext: getExt(file.name),
+        filename: file.name,
         folder: "uploads",
         isPublic: true,
         checksum: hex, // route kamu akan set ChecksumSHA256 ke MinIO
