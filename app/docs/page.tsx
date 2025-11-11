@@ -1,4 +1,4 @@
-export default function DocsPage() {
+export default function  DocsPage() {
   return (
     <main style={{ height: "100vh", padding: 0, margin: 0 }}>
       <iframe

@@ -23,8 +23,10 @@ export async function GET() {
     paths: {
       "/api/storage/create-upload": {
         post: {
-          summary: "Buat pre-signed URL untuk upload (PUT) ke MinIO",
-          operationId: "createUpload",
+        summary: "Buat pre-signed URL untuk upload (PUT) ke MinIO",
+        description:
+          "Tambahkan `filename` untuk menentukan nama yang terlihat di CDN/public URL (nama akan disanitasi).",
+        operationId: "createUpload",
           tags: ["Storage"],
           security: [{ ApiKeyAuth: [] }], // eksplisit
           requestBody: {
@@ -32,16 +34,17 @@ export async function GET() {
             content: {
               "application/json": {
                 schema: { $ref: "#/components/schemas/CreateUploadRequest" },
-                example: {
-                  mime: "image/jpeg",
-                  ext: "jpg",
-                  folder: "uploads",
-                  isPublic: true,
-                  checksum: "d4735e3a265e16eee03f59718b9b5d03…", // sha256 hex (opsional)
-                  expiresIn: 60,
-                },
-              },
+            example: {
+              mime: "image/jpeg",
+              ext: "jpg",
+              filename: "lampiran.jpg",
+              folder: "uploads",
+              isPublic: true,
+              checksum: "d4735e3a265e16eee03f59718b9b5d03…", // sha256 hex (opsional)
+              expiresIn: 60,
             },
+          },
+        },
           },
           responses: {
             "200": {
@@ -184,6 +187,12 @@ export async function GET() {
               type: "string",
               description: "Ekstensi tanpa titik",
               example: "jpg",
+            },
+            filename: {
+              type: "string",
+              description:
+                "opsional: nama file yang akan digunakan di key/public URL (disanitasi otomatis)",
+              example: "lampiran.pdf",
             },
             folder: { type: "string", default: "uploads" },
             isPublic: { type: "boolean", default: true },

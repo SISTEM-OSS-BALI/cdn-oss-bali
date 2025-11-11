@@ -30,9 +30,30 @@ function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
+function sanitizeFilenameInput(name?: string) {
+  const cleaned = (name ?? "").trim();
+  if (!cleaned) return null;
+  const raw = cleaned.split(/[\\/]/).filter(Boolean).pop();
+  if (!raw) return null;
+  const filtered = raw.replace(/[^a-zA-Z0-9._-]/g, "_");
+  if (!filtered) return null;
+  const normalized = filtered.replace(/^_+|_+$/g, "");
+  if (!normalized) return null;
+
+  const lastDot = normalized.lastIndexOf(".");
+  if (lastDot <= 0 || lastDot === normalized.length - 1) {
+    return { name: normalized, ext: null };
+  }
+
+  const namePart = normalized.slice(0, lastDot) || normalized;
+  const extPart = normalized.slice(lastDot + 1);
+  return { name: namePart, ext: extPart };
+}
+
 type CreateUploadBody = {
   mime?: string;
   ext?: string;
+  filename?: string;
   folder?: string;
   isPublic?: boolean;
   checksum?: string; // sha256 hex (opsional)
@@ -66,7 +87,10 @@ export async function POST(req: Request) {
   }
 
   const mime = (body.mime || "application/octet-stream").trim();
-  const ext = safeExt(body.ext);
+  const filenameInfo = sanitizeFilenameInput(body.filename);
+  const extHint = safeExt(body.ext);
+  const extFromFilename = filenameInfo?.ext ? safeExt(filenameInfo.ext) : null;
+  const finalExt = extFromFilename || extHint;
   const folder = sanitizeFolder(body.folder);
   const isPublic = body.isPublic !== false; // default true
   const expiresIn = clamp(Number(body.expiresIn ?? 60) || 60, 10, 600); // 10..600 dtk
@@ -76,7 +100,9 @@ export async function POST(req: Request) {
   const hasValidChecksum = !!checksumHex && /^[a-f0-9]{64}$/.test(checksumHex);
 
   const today = new Date().toISOString().slice(0, 10);
-  const key = `${folder}/${today}/${crypto.randomUUID()}.${ext}`;
+  const baseName = filenameInfo?.name;
+  const uniqueName = baseName && baseName !== "." ? baseName : crypto.randomUUID();
+  const key = `${folder}/${today}/${uniqueName}.${finalExt}`;
 
   // 4) Build PutObjectCommand (+ header cache)
   const cmd = new PutObjectCommand({
