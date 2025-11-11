@@ -1,0 +1,56 @@
+networks:
+  npm-internal:
+    external: true
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: storage-mysql
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: storage1234
+      MYSQL_DATABASE: db_cdn_oss
+      MYSQL_USER: oss_user
+      MYSQL_PASSWORD: superStrongAppPass!
+      TZ: Asia/Makassar
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+    expose:
+      - "3306"
+    networks:
+      - npm-internal
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-pstorage1234"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  nextjs:
+    container_name: storage-next
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_REGION: ${S3_REGION}
+      S3_BUCKET: ${S3_BUCKET}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE}
+      CDN_PUBLIC_BASE: ${CDN_PUBLIC_BASE}
+    expose:
+      - "3000"
+    networks:
+      - npm-internal
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
