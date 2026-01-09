@@ -6,7 +6,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import crypto from "node:crypto";
 import { s3 } from "@/lib/s3";
 import { db } from "@/lib/prisma";
-import { verifyApiKey } from "@/lib/auth";
+import { readApiKeyFromHeaders, verifyApiKey } from "@/lib/auth";
 
 // --- util kecil ---
 function safeExt(ext?: string) {
@@ -40,12 +40,16 @@ type CreateUploadBody = {
 };
 
 export async function POST(req: Request) {
-  // 1) Auth via API key dengan scope "upload"
-  const auth = await verifyApiKey(req.headers, ["upload"]);
-  if (!auth.ok) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  // 1) Auth opsional: jika ada API key, verifikasi scope "upload"
+  const providedKey = readApiKeyFromHeaders(req.headers);
+  let projectId: string | null = null;
+  if (providedKey) {
+    const auth = await verifyApiKey(req.headers, ["upload"]);
+    if (!auth.ok) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+    projectId = auth.apiKey!.projectId;
   }
-  const projectId = auth.apiKey!.projectId;
 
   // 2) ENV wajib
   const bucket = process.env.S3_BUCKET;
@@ -116,7 +120,7 @@ export async function POST(req: Request) {
         mimeType: mime,
         isPublic,
         checksum: hasValidChecksum ? checksumHex! : null,
-        projectId, // jejak API key yang membuat
+        projectId, // jejak API key yang membuat (opsional)
       },
     });
   } catch (e) {
