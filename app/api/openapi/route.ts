@@ -10,7 +10,7 @@ export async function GET() {
       version: "1.0.0",
     },
     servers: [
-      { url: "", description: "Same-origin (local/prod)" },
+      { url: "/", description: "Same-origin (local/prod)" },
       {
         url: "https://storage.onestepsolutionbali.com",
         description: "Production",
