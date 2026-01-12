@@ -66,9 +66,38 @@ function ensureScopeArray(value: unknown): Scope[] {
 }
 
 function ensureStringArray(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.filter((v): v is string => typeof v === "string")
-    : [];
+  // Normal case: Json array
+  if (Array.isArray(value)) {
+    return value.filter(
+      (v): v is string => typeof v === "string" && v.trim().length > 0
+    );
+  }
+
+  // Compatibility: stored as string in DB (e.g. '["upload","download"]' or 'upload,download')
+  if (typeof value === "string") {
+    const s = value.trim();
+    if (!s) return [];
+
+    // Try JSON.parse first
+    try {
+      const parsed = JSON.parse(s);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(
+          (v): v is string => typeof v === "string" && v.trim().length > 0
+        );
+      }
+    } catch {
+      // ignore
+    }
+
+    // Fallback: comma-separated
+    return s
+      .split(",")
+      .map((x) => x.trim())
+      .filter(Boolean);
+  }
+
+  return [];
 }
 
 function isScope(value: string): value is Scope {
