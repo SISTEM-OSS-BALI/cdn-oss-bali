@@ -1,0 +1,30 @@
+{
+  "name": "cdn-oss",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
+    "build:std": "next build",
+    "start": "next start -p 3000"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.911.0",
+    "@aws-sdk/s3-request-presigner": "^3.911.0",
+    "@prisma/client": "^6.17.1",
+    "next": "15.5.5",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "swagger-ui": "^5.29.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20.19.21",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "prisma": "^6.17.1",
+    "tailwindcss": "^4",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

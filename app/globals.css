@@ -1,0 +1,5 @@
+/* app/globals.css */
+@import "tailwindcss";
+
+/* reset / util tambahanmu boleh di bawah ini */
+* { margin: 0; padding: 0; box-sizing: border-box; }
